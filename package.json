@@ -6,6 +6,7 @@
         "npm":  "1.0.x"
       },
     "dependencies": {
-        "net": "1.0.0"
+        "net": "1.0.0",
+        "coffee-script": "1.2.x"
     }
 }
