@@ -42,7 +42,7 @@ server = net.createServer (socket) ->
     count += 1
 
     connections[socket.id] = currentConnection
-    
+
 
     socket.on 'end', ->
         console.log "server disconnected"
@@ -65,11 +65,12 @@ server = net.createServer (socket) ->
         messageContent = data[2..]
 
         msgPacket = new Packet separator, command, messageContent
-        
+
 
         pm.execute connections[this.id], msgPacket
 
 
 startServer= ->
-    server.listen 8124, ->
-        console.log "server bound"
+    port = process.env.PORT || 8124
+    server.listen port, ->
+        console.log "Server listening on #{port}"
