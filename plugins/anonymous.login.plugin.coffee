@@ -1,8 +1,9 @@
 fs = require 'fs'
 Connection = require('../connection').Connection
+PluginBase = require('../plugin.base').PluginBase
 Packet = require('../packet').Packet
 
-class AnonymousLogin
+class AnonymousLogin extends PluginBase
 
     @userCount: 0
     description: "AnonymousLogin"
@@ -10,21 +11,6 @@ class AnonymousLogin
     commands: =>
         login: @login,
         logout: @logout
-
-    constructor: ->
-
-
-
-    #notifications from plugin manager
-    onNewConnection: (connection) =>
-
-    onConnectionDisconnected: (connection) =>
-    #--
-
-    execute: (connection, msgPacket) =>
-        @commands()[msgPacket.command](connection, msgPacket)
-        connection.write msgPacket.command+" executed"
-
 
     login: (connection, msgPacket) =>
 

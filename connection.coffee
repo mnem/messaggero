@@ -6,9 +6,11 @@ class Connection extends EventEmitter
     @PACKET_SENT_EVENT: "Connection::PACKET_SENT"
 
 
-    constructor: (@socket, @data={}) ->
+    constructor: (@socket, @data={}, @writeMethod) ->
         super
         @id = @socket.id
+        # FIXME remove listener and update all other
+        # files to just use a Connection.Send method
         @on Connection.SEND_PACKET_EVENT, @onSend
 
 
@@ -22,7 +24,7 @@ class Connection extends EventEmitter
         delete @data[key]
 
     onSend: (messagePacket) =>
-        @write messagePacket.stringify()
+        @writeMethod messagePacket.stringify()
         @emit Connection.PACKET_SENT_EVENT
         
     disconnect: () =>
@@ -30,7 +32,4 @@ class Connection extends EventEmitter
         # and remove all their listeners
         @emit Connection.DISCONNECT_EVENT
 
-    write: (msg) =>
-        @socket.sendUTF msg
-         
 exports.Connection = Connection

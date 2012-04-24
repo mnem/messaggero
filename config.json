@@ -1,0 +1,4 @@
+{
+    "serverType": "./tcpsockets",
+    "port": 8124
+}

@@ -1,17 +1,13 @@
+PluginBase = require('../plugin.base').PluginBase
 World = require('./world').Plugin
-class Drawing
+
+class Drawing extends PluginBase
 
     description: "Drawing"
 
     commands: =>
         drawing: @draw
 
-    #notifications from plugin manager
-    onNewConnection: (connection) =>
-
-    onConnectionDisconnected: (connection) =>
-    #--
-    
     execute: (connection, msgPacket) =>
         # users need to be logged in to be able to
         # use the chat
@@ -19,7 +15,7 @@ class Drawing
             console.log "not logged in"
             return
 
-        @commands()[msgPacket.command](connection, msgPacket)
+        super connection, msgPacket
 
 
     draw: (connection, msgPacket) =>

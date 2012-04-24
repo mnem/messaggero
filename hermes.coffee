@@ -1,10 +1,10 @@
-net = require 'net'
 PluginManager = require('./plugin_manager').PluginManager
 fs = require 'fs'
 Connection = require('./connection').Connection
 Packet = require('./packet').Packet
 WebSocketServer = require('websocket').server
 http = require('http')
+
 
 ### Loading plugins ###
 pm = new PluginManager()
@@ -23,65 +23,65 @@ fs.readdir pluginDir, (err, files) =>
        loadedPlugin = new Plugin()
        pm.register loadedPlugin
 
-   startServer()
+   loadConfiguration()
 
 ### ---------- ###
 
+# loading configuration #
+configuration = {}
+loadConfiguration = ->
+    fs.readFile './config.json', 'utf8', onConfigFileLoaded
 
-connections = {}
-count = 0
+onConfigFileLoaded = (err, data) ->
+    configuration = JSON.parse data
+    startApplication()
+#----------#
 
-server = http.createServer (request, response) ->
-
-###
-server = net.createServer (socket) ->
-    socket.setEncoding 'utf8'
-    console.log "server connected"
-
-    pm.onNewConnection socket
-
-
-    socket.id = count
-    currentConnection = new Connection(socket)
-    # find a better way to identify sockets
-    count += 1
-
-    connections[socket.id] = currentConnection
+startApplication = ->
+    Server = require(configuration.serverType).Server
+    server = new Server configuration.port
+    server.on Server.NEW_CONNECTION_EVENT, onNewConnection
+    server.on Server.DATA_EVENT, onData
+    server.on Server.DISCONNECTION_EVENT, onDisconnection
+    server.startListening()
     
 
-    socket.on 'end', ->
-        console.log "server disconnected"
-        connections[this.id].disconnect()
-        connections[this.id].removeAllListeners()
-        delete connections[this.id]
+onNewConnection = (connection) ->
+    console.log "new connection", connection.id
+    #pm.onNewConnection connection
 
-    socket.write "hello!\r\n"
+onData = (connection, data) ->
+    console.log "data received from connection", connection.id
 
-    socket.on 'data', (data) ->
-        console.log "data received", data
-        # removing \r\n character
-        if data.length > 1 
-            data = data.substring(0, data.length-2) while (data.length > 1 and data.charAt(data.length-2) == '\r' and data.charAt(data.length-1) == '\n')
+    separator = data.charAt(0)
+    data = data.split separator
+    command = data[1]
+    messageContent = data[2..]
 
-        separator = data.charAt(0)
-        data = data.split separator
-        command = data[1]
-        messageContent = data[2..]
+    msgPacket = new Packet separator, command, messageContent
 
-        msgPacket = new Packet separator, command, messageContent
-        
+    pm.execute connection, msgPacket
 
-        pm.execute connections[this.id], msgPacket
 
-    ###
-wsServer = null
-startServer= ->
+onDisconnection = (connection) ->
+    console.log "connection ended", connection.id
+
+
+
+
+
+###
+server = http.createServer (request, response) ->
+
+
+
+
+startServer = ->
     server.listen 8124, ->
         console.log "server bound"
 
-    wsServer = new WebSocketServer({
-        httpServer: server
-        })
+    wsServer = new WebSocketServer { httpServer: server }
+
     wsServer.on 'request', (request) ->
         console.log "request received"
         socket = request.accept(null, request.origin)
@@ -113,7 +113,7 @@ startServer= ->
 
             console.log "data received", data
             # removing \r\n character
-            if data.length > 1 
+            if data.length > 1
                 data = data.substring(0, data.length-2) while (data.length > 1 and data.charAt(data.length-2) == '\r' and data.charAt(data.length-1) == '\n')
 
             separator = data.charAt(0)
@@ -128,3 +128,6 @@ startServer= ->
 
 
 
+
+
+###

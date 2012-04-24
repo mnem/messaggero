@@ -1,26 +1,22 @@
+PluginBase = require('../plugin.base').PluginBase
 Packet= require('../packet').Packet
 World = require('./world').Plugin
-class Chat
+
+class Chat extends PluginBase
 
     description: "Chat"
 
     commands: =>
         say: @say
 
-    #notifications from plugin manager
-    onNewConnection: (connection) =>
-
-    onConnectionDisconnected: (connection) =>
-    #--
-    
     execute: (connection, msgPacket) =>
         # users need to be logged in to be able to
         # use the chat
         if not (connection.getData("username")?)
             console.log "not logged in"
             return
-
-        @commands()[msgPacket.command](connection, msgPacket)
+        
+        super connection, msgPacket
 
 
     say: (connection, msgPacket) =>
